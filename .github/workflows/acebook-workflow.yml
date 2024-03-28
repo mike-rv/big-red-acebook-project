@@ -27,7 +27,7 @@ jobs:
       - name: Wait for test server
         run: |
           echo "Waiting for test server to start..."
-          until $(curl --output /dev/null --silent --head --fail http://localhost:$(lsof -ti:0 -sTCP:LISTEN | head -1)); do
+          until $(curl --output /dev/null --silent --head --fail http://localhost:$(grep -oP '(?<=Now listening on port )\d+' <(npm run start:test &))); do
               printf '.'
               sleep 5
           done
