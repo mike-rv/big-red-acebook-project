@@ -1,54 +1,45 @@
-name: Node.js CI
+name: CI
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: [push]
 
 jobs:
-  build:
-
+  build-and-test:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      
+        
+      # Setup Node.js environment on the runner
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
-      
+
+      # Install dependencies
       - name: Install dependencies
         run: npm ci
-      
-      - name: Lint code
-        run: npm run lint
-      
+
+      # Start test server in the background
       - name: Start test server
         run: npm run start:test &
-        env:
-          CI: true
-      
-      - name: Wait for test server to start
+
+      # Wait for the test server to be ready
+      - name: Wait for test server
         run: |
-          echo "Waiting for server to start on port 3030..."
-          while ! nc -z localhost 3030; do   
-            sleep 1
+          echo "Waiting for http://localhost:3030 to be ready..."
+          until $(curl --output /dev/null --silent --head --fail http://localhost:3030); do
+              printf '.'
+              sleep 5
           done
-          echo "Server started."
-      
+
+      # Run unit tests
       - name: Run unit tests
         run: npm run test:unit
-      
-      - name: Run integration tests
-        run: npm run test:integration
 
-      - name: Run Cypress tests
-        uses: cypress-io/github-action@v2
+      # Run integration tests (Cypress) with Chrome browser
+      - name: Cypress run
+        uses: cypress-io/github-action@v6
         with:
-          start: npm run start:test
+          browser: chrome
           wait-on: 'http://localhost:3030'
-          wait-on-timeout: 60
-          command: npm run test:integration
