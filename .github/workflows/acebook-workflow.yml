@@ -8,14 +8,6 @@ jobs:
     strategy:
       matrix:
         node-version: ['18']
-        mongodb-version: ['4.4'] # Example version, choose as needed
-
-    services:
-      mongodb:
-        image: mongo:${{ matrix.mongodb-version }}
-        ports:
-          - 27017:27017
-        options: --health-cmd "mongo --eval 'db.runCommand({ping: 1})'" --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
       - name: Checkout repository
@@ -31,8 +23,6 @@ jobs:
 
       - name: Start test server
         run: npm run start:test &
-        env:
-          MONGODB_URL: mongodb://localhost:27017/acebook_test
 
       - name: Wait for test server
         run: |
@@ -48,5 +38,5 @@ jobs:
       - name: Run integration tests (Cypress)
         uses: cypress-io/github-action@v6
         with:
-          start: npm run start:test
           wait-on: 'http://localhost:3030'
+
