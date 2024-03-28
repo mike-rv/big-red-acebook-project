@@ -5,6 +5,11 @@ on: [push]
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:4.4
+        ports:
+          - 27017:27017
     strategy:
       matrix:
         node-version: ['18']
@@ -39,4 +44,3 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           wait-on: 'http://localhost:3030'
-
